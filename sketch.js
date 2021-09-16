@@ -160,9 +160,10 @@ else if (modo === PAUSAR){
   gameover.visible = true;
   reiniciar.visible = true;
   
-  if(mousePressedOver(reiniciar)){
-    console.log("reiniciar");
+  if(touches.lengh > 0(reiniciar)){
+    
     reset();
+    touches = [];
   }
   
   
