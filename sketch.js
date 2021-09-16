@@ -1,28 +1,22 @@
-var rex,rex_run,rex_lose; 
-var bordas;
-var solo,colisaosolo;
-var nuvem,imagem_nuvem;
-var placar = 0;
-var gobstaculos, gnuvens;
-var som_jump, som_dead, som_ponto;
-
-//PAUSAR
-var JOGAR = 0;
-var PAUSAR = 1;
-var modo = JOGAR;
-
-var gameover, reiniciar, gameover_img,reiniciar_img;
+var JOGAR = 1;
+var ENCERRAR = 0;
+var estados = JOGAR;
+var trex, trex_correndo, trex_colidiu;
+var solo, soloinvisivel, imagemdosolo;
+var imagemnuvem;
+var obstaculo1, obstaculo2, obstaculo3, obstaculo4, obstaculo5, obstaculo6;
+var pontuacao;
+var grupoobstaculos, gruponuvens;
+var fimdejogo, reiniciar, gameover, restart;
+var somSalto, somMorte, checkPoint;
 
 function preload(){
-  //carregar animações e imagens
-  rex_run = loadAnimation("trex1.png","trex3.png","trex4.png");
-  imagemSolo = loadImage("ground2.png");
+  trex_correndo =loadAnimation("trex1.png","trex2.png","trex3.png");
+  trex_colidiu = loadImage("trex_collided.png");
   
-  imagem_nuvem = loadImage("cloud.png");
+  imagemdosolo = loadImage("ground2.png");
   
-  rex_lose = loadImage("trex_collided.png");
-  
-  console.log("Placar: "+0);
+  imagemnuvem = loadImage("cloud2.png");
   
   obstaculo1 = loadImage("obstacle1.png");
   obstaculo2 = loadImage("obstacle2.png");
@@ -31,233 +25,200 @@ function preload(){
   obstaculo5 = loadImage("obstacle5.png");
   obstaculo6 = loadImage("obstacle6.png");
   
-  gameover_img = loadImage("gameOver.png");
-  reiniciar_img = loadImage("restart.png");
+  gameover = loadImage("gameOver.png");
+  restart = loadImage("restart.png");
   
-som_jump = loadSound("jump.mp3");
-som_dead = loadSound("die.mp3");
-som_ponto = loadSound("checkPoint.mp3");
+  checkPoint = loadSound("checkpoint.mp3");
+  somSalto = loadSound("jump.mp3");
+  somMorte = loadSound("die.mp3");
   
-  
-  
+
 }
 
-function setup(){
-  //adicionar sprites e etc
-  createCanvas(windowWidth, windowHeight);
-  
-  //sprite rex
-  rex = createSprite(100,height-100,10,10);
-  //animação rex correndo
-  rex.addAnimation("running",rex_run);
-  rex.addAnimation("lose",rex_lose);
-  rex.scale = 0.5;
-  rex.x = 50;
-  
- 
-  
-  //solo
-  solo = createSprite(width/2,height-20,width,20);
-  solo.addImage("solo",imagemSolo);
-  solo.x = solo.width / 2;
-  
-  colisaosolo = createSprite(width/2,height-10,width,20);
-  colisaosolo.visible = false;
-  
-  gobstaculos = new Group();
-  
-  gnuvens = new Group();
-  
-  //rex.debug = true;
-  rex.setCollider("circle",0,0,40);
+function setup() {
 
-  //bordas do jogo
-  bordas = createEdgeSprites();
+  createCanvas(windowWidth,windowHeight);
   
-  gameover = createSprite(width/2,height/2);
-  gameover.addImage(gameover_img);
-  gameover.scale = 0.5;
-  gameover.visible = false;
+  //criar texto da pontuação
+  
+  
+  //criar um sprite do trex
+  trex = createSprite(50,height-70,20,50);
+  trex.addAnimation("running", trex_correndo);
+  trex.addAnimation("collided", trex_colidiu);
+  trex.scale = 0.5;
+  
+  //criar um sprite do solo
+  solo = createSprite(width/2,height-20,width,20);
+  solo.addImage("ground",imagemdosolo);
+  solo.x = solo.width /2;
+  
+  //cria um solo invisível
+  soloinvisivel = createSprite(width/2,height-10,width,10);
+  soloinvisivel.visible = false;
+  
+  grupoobstaculos = new Group();
+  gruponuvens = new Group();
+  
+  pontuacao = 0;
+  
+  
+  trex.setCollider("circle", 0, 0, 40);
+  
+  fimdejogo = createSprite(width/2,height/2);
+  fimdejogo.addImage(gameover);
+  fimdejogo.visible = false;
   
   reiniciar = createSprite(width/2,height/2 + 50);
-  reiniciar.addImage(reiniciar_img);
-  reiniciar.scale = 0.6;
+  reiniciar.addImage(restart);
   reiniciar.visible = false;
   
+  fimdejogo.scale = 0.5;
+  reiniciar.scale = 0.5;
   
-  //var rand = Math.round(random(1,100))
-//console.log("numero randomico",rand);
-  
-  
-  
+ 
 }
 
-function draw(){
- 
-  //funcionamento do jogo
-  //console.time();
-  background('white');
+function draw() {
   
-  text ("Placar: "+placar,width/2 +400,height-500);
+  //definir cor de fundo
+  background(240);
   
-  //console.log("modo: ",modo)
+  //mostra a pontuação na tela
+   text("Pontuacao: "+ pontuacao, width/2 -50,height-500);
+  
+    if(pontuacao > 0 && pontuacao%100 == 0){
+
+      checkPoint.play();
+    }
+  
+   //impedir o trex de cair 
+  trex.collide(soloinvisivel);
   
   
- 
-if(modo === JOGAR){
-    //mover o solo
-    solo.velocityX = -10;
+  if(estados == JOGAR){
+    //faz o solo de mover
+    solo.velocityX = -(4+3*pontuacao/100);
     
-    //atualizar placar
-    placar = placar + Math.round(frameRate()/60);
-  
-  if(placar % 100 === 0 && placar > 0){
-    som_ponto.play();
-  }
-    
-    //reiniciar solo
-  if (solo.x < 0){
-    solo.x = solo.width/2;
-  }  
-    
-   //Pulo rex
-  if(touches.lenght > 0 &&rex.isTouching(solo)){
-    som_jump.play();
-    rex.velocityY = -10;
-    touches = [];
-  }
-  
-   //gravidade
-  rex.velocityY = rex.velocityY + 0.6;
-  
-  gerarNuvens();
-  
-  gerarObstaculos();
-  
-  if(gobstaculos.isTouching(rex)){
-   som_dead.play();
-    modo = PAUSAR;
-  }
-  
-  
-}
-  
-  
-else if (modo === PAUSAR){
-    //parar  o solo
-    solo.velocityX = 0;
-  
-  rex.changeAnimation("lose",rex_lose);
-  rex.velocityX = 0;
-  rex.velocityY = 0;
-  
-  gobstaculos.setLifetimeEach(-1);
-  gnuvens.setLifetimeEach(-1);
-  
-  gobstaculos.setVelocityXEach(0);
-  gnuvens.setVelocityXEach(0);
-  
-  gameover.visible = true;
-  reiniciar.visible = true;
-  
-  if(touches.lengh > 0(reiniciar)){
-    
-    reset();
-    touches = [];
-  }
-  
-  
-    
-  }
-    
-  //console.log(rex.y);
-  //console.info("informar algo");
-  //console.error("informar um erro");
-  //console.warn("informar um aviso");
-  //console.log(frameCount);
+    //atualiza a pontuação
+    pontuacao = pontuacao + Math.round((frameRate()/60));
     
    
-  //chão
-  //rex.collide (bordas [3]);
-  //rex.collide(solo);
-  rex.collide(colisaosolo);
-  
-  
-  
     
-  drawSprites();
-  //console.timeEnd();
-}
+    // pular quando a tecla espaço é acionada
+    if(touches.length > 0 && trex.y > height- 60) {
+      trex.velocityY = -10;
+      somSalto.play();
+      touches = [];
+    }
 
-function reset(){
-  modo = JOGAR;
-  gameover.visible = false;
-  reiniciar.visible = false;
-  
-  gobstaculos.destroyEach();
-  gnuvens.destroyEach();
-  rex.changeAnimation("running",rex_run)
-  
-  placar = 0;
-}
+    trex.velocityY = trex.velocityY + 0.5
 
-function gerarNuvens(){
-  if(frameCount % 80 === 0){
-  nuvem = createSprite(width,100,50,10);
-  nuvem.addImage(imagem_nuvem);
-  nuvem.y = Math.round(random(height-50,height-130));
-  nuvem.scale = 0.5;
-  nuvem.velocityX = -3;
-    
-    
-    nuvem.lifetime = width-210;
-    
-    //camada ou profundidade do sprite
-    //depth
-    //console.log(rex.depth);
-    //console.log(nuvem.depth);
-    
-    //ajustar profundidade
-    
-    nuvem.depth = rex.depth
-    rex.depth = rex.depth + 1;
-    
-     gnuvens.add(nuvem);
+    if (solo.x < 0){
+      solo.x = solo.width/2;
+    }
   
+      //gerador de nuvens e obstáculos 
+      GerarNuvens();
+      GerarObstaculos();
+    
+      if(grupoobstaculos.isTouching(trex)){
+        somMorte.play();
+        estados = ENCERRAR;
+       // somSalto.play();
+       // trex.velocityY = -12;
+      }
+    
+  }
+  else if(estados == ENCERRAR){
+    solo.velocityX = 0;
+    grupoobstaculos.setVelocityXEach(0);
+    gruponuvens.setVelocityXEach(0);
+    
+    trex.changeAnimation("collided");
+    trex.velocityY = 0;
+    
+    //define o tempo de vida dos objetos do jogo após o fim
+    grupoobstaculos.setLifetimeEach(-1);
+    gruponuvens.setLifetimeEach(-1);
+    
+    fimdejogo.visible = true;
+    reiniciar.visible = true;
+    
+    if(touches.length > 0){
+    
+    reset();
+    touches= [];
+    }
+    
   }
   
  
+  
+  drawSprites();
+  
 }
 
-function gerarObstaculos(){
-  if (frameCount % 60 === 0){
-    var obstaculo = createSprite(width,height-30,10,40);
-    obstaculo.scale = 0.5;
-    obstaculo.velocityX = -6;
-    obstaculo.lifetime = width-300;
+function GerarNuvens(){
+  
+  if(frameCount % 60 == 0){
+  var nuvem = createSprite(600,100,40,10);
+  nuvem.velocityX = -3;
+  nuvem.addImage(imagemnuvem);
+  nuvem.scale = 0.6;
+  nuvem.y = Math.round(random(height-100,height-300));
     
-    //gerar obstaculos aleatorios
+  nuvem.depth = trex.depth;
+  trex.depth = trex.depth+1;
+    
+  nuvem.lifetime = 200;
+    
+    gruponuvens.add(nuvem);
+  }
+  
+}
+
+function GerarObstaculos(){
+  
+  if(frameCount %60 == 0){
+    
+    var obstaculo = createSprite(width,height-30,10,40);
+    obstaculo.velocityX = -(6+ pontuacao/100);
     
     var rand = Math.round(random(1,6));
+    
     switch(rand){
-      case 1: obstaculo.addImage(obstaculo1);
-        break;
-      case 2: obstaculo.addImage(obstaculo2);
-        break;
-      case 3: obstaculo.addImage(obstaculo3);
-        break;
-      case 4: obstaculo.addImage(obstaculo4);
-        break;  
-      case 5: obstaculo.addImage(obstaculo5);
-        break;
-      case 6: obstaculo.addImage(obstaculo6);
-        break;   
-        default: break;  
-      }  
+        case 1: obstaculo.addImage(obstaculo1);
+                break;
+        case 2: obstaculo.addImage(obstaculo2);
+                break;
+        case 3: obstaculo.addImage(obstaculo3);
+                break;
+        case 4: obstaculo.addImage(obstaculo4);
+                break;
+        case 5: obstaculo.addImage(obstaculo5);
+                break;
+        case 6: obstaculo.addImage(obstaculo6);
+                break;
+                default: break;
+    }
     
-      gobstaculos.add(obstaculo);
+    obstaculo.scale = 0.5;
+    obstaculo.lifetime = 300;
     
+    grupoobstaculos.add(obstaculo);
   }
- 
+  
 }
+function reset(){
+  
+  estados = JOGAR;
+  reiniciar.visible = false;
+  fimdejogo.visible = false;
+  grupoobstaculos.destroyEach();
+  gruponuvens.destroyEach();
+  trex.changeAnimation("running", trex_correndo);
+  pontuacao =  0;
+}
+
 
