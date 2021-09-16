@@ -121,7 +121,7 @@ if(modo === JOGAR){
   }  
     
    //Pulo rex
-  if((touches.lenght > 0 || keyDown("space"))&&rex.isTouching(solo)){
+  if(touches.lenght > 0 &&rex.isTouching(solo)){
     som_jump.play();
     rex.velocityY = -10;
     touches = [];
