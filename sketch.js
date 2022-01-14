@@ -47,7 +47,7 @@ function setup(){
   createCanvas(windowWidth, windowHeight);
 
   //sprite rex
-  rex = createSprite(100,height-100,10,10);
+  rex = createSprite(50,height-100,10,10);
   //animação rex correndo
   rex.addAnimation("running",rex_run);
   rex.addAnimation("lose",rex_lose);
@@ -57,11 +57,11 @@ function setup(){
 
 
   //solo
-  solo = createSprite(width/2,height-20,width,20);
+  solo = createSprite(width/2,height-10,width,20);
   solo.addImage("solo",imagemSolo);
   solo.x = solo.width / 2;
 
-  colisaosolo = createSprite(width/2,height-10,width,20);
+  colisaosolo = createSprite(width/2,height-10,width,10);
   colisaosolo.visible = false;
 
   gobstaculos = new Group();
@@ -121,7 +121,7 @@ if(modo == JOGAR){
   }  
 
    //Pulo rex
-  if(touches.lenght > 0 &&rex.isTouching(solo)){
+  if(touches.length > 0 &&rex.isTouching(solo)){
     som_jump.play();
     rex.velocityY = -10;
     touches = [];
@@ -160,7 +160,7 @@ else if (modo == PAUSAR){
   gameover.visible = true;
   reiniciar.visible = true;
 
-  if(touches.lenght > 0 ){
+  if(touches.length > 0 ){
     console.log("reiniciar");
     reset();
     
@@ -204,14 +204,14 @@ function reset(){
 
 function gerarNuvens(){
   if(frameCount % 80 === 0){
-  nuvem = createSprite(width,100,50,10);
+  nuvem = createSprite(width+20,100,50,10);
   nuvem.addImage(imagem_nuvem);
   nuvem.y = Math.round(random(height-50,height-130));
   nuvem.scale = 0.5;
   nuvem.velocityX = -3;
 
 
-    nuvem.lifetime = width-210;
+    nuvem.lifetime = width+20;
 
     //camada ou profundidade do sprite
     //depth
@@ -232,10 +232,10 @@ function gerarNuvens(){
 
 function gerarObstaculos(){
   if (frameCount % 60 === 0){
-    var obstaculo = createSprite(width,height-30,10,40);
+    var obstaculo = createSprite(width+20,height-30,10,40);
     obstaculo.scale = 0.5;
     obstaculo.velocityX = -6;
-    obstaculo.lifetime = width-300;
+    obstaculo.lifetime = width+20;
 
     //gerar obstaculos aleatorios
 
