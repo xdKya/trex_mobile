@@ -76,12 +76,12 @@ function setup(){
 
   gameover = createSprite(width/2,height/2);
   gameover.addImage(gameover_img);
-  gameover.scale = 0.5;
+  gameover.scale = 0.8;
   gameover.visible = false;
 
   reiniciar = createSprite(width/2,height/2 + 50);
   reiniciar.addImage(reiniciar_img);
-  reiniciar.scale = 0.6;
+  reiniciar.scale = 0.8;
   reiniciar.visible = false;
 
 
